@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная</title>
+    <link rel="stylesheet" href="static/styles.css">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+</head>
+<body class="center-page-mobile">
+    <div id="home" class="screen active" data-view>
+        <header>
+            <a href="/home"><i class="ph-bold ph-arrow-left"></i></a>
+            <h2>Нас&shyтрой&shyки</h2>
+        </header>
+        <main>
+            <a href="/editDishes" id="editDishesBtn" class="btn hidden"><button>Изменить блюда</button></a>
+            <a href="/edit" id="editBtn" class="btn hidden"><button>Изменить порядок блюд</button></a>
+            <a href="/users" id="usersBtn" class="btn hidden"><button>Управление пользователями</button></a>
+            <a href="/ordersArchive" id="archiveBtn" class="btn hidden"><button>Выполненные заказы</button></a>
+            <div class="buttondown"></div>
+            <div style="display: flex; flex-direction: column; align-items: center;gap: 10px;">
+                <img src="static/logo.svg" alt="Логотип" height="80px">
+                <p style="text-align: center;">Сделано по заказу ГБПОУ МО «Воскресенский Колледж» · Версия 0.8</p>
+            </div>
+            <a href="/logout" class="btn"><button class="red dark">Выйти</button></a>
+        </main>
+    </div>
+    <script>
+        // Проверка авторизации и получение данных пользователя
+        fetch('/check_auth')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.authenticated) {
+                    window.location.href = '/';
+                } else {
+                    if (data.admin) {
+                        document.getElementById('usersBtn').classList.remove('hidden');
+                        document.getElementById('archiveBtn').classList.remove('hidden');
+                        document.getElementById('editBtn').classList.remove('hidden');
+                        document.getElementById('editDishesBtn').classList.remove('hidden');
+                    }
+                }
+            });
+    </script>
+</body>
+</html>
