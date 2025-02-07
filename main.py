@@ -1,9 +1,25 @@
+"""
+⚠️ ВНИМАНИЕ: ДАННЫЙ КОД ЯВЛЯЕТСЯ КОНФИДЕНЦИАЛЬНЫМ И МОЖЕТ ИСПОЛЬЗОВАТЬСЯ ТОЛЬКО В ГБПОУ МО "ВОСКРЕСЕНСКИЙ КОЛЛЕДЖ" ⚠️
+
+Этот исходный код защищен международным законодательством об авторском праве.
+Он доступен только для использования в ГБПОУ МО "Воскресенский Колледж". 
+Если у вас нет разрешения на использование этого кода, немедленно закройте файл и удалите его.
+
+❗️ Открытая версия доступна на GitHub:  
+https://github.com/isamirivers/canteen-management-system
+
+🚫 НЕ РАСПРОСТРАНЯТЬ 🚫
+"""
+
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 from functools import wraps
 from werkzeug.exceptions import HTTPException
+from license_check import check_license
+
+check_license()
 
 client = MongoClient('mongodb://localhost:27017/')
 db = client.stolovaya
@@ -397,4 +413,4 @@ def update_order_status():
     return jsonify({'success': False}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True, port=80, host="0.0.0.0")
+    app.run(debug=False, port=80, host="0.0.0.0")
