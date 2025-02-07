@@ -21,7 +21,7 @@
             <div class="buttondown"></div>
             <div style="display: flex; flex-direction: column; align-items: center;gap: 10px;">
                 <img src="static/logo.svg" alt="Логотип" height="80px">
-                <p style="text-align: center;">Сделано по заказу ГБПОУ МО «Воскресенский Колледж» · Версия 0.8</p>
+                <p style="text-align: center;">Сделано по заказу ГБПОУ МО «Воскресенский Колледж» · Версия 0.9</p>
             </div>
             <a href="/logout" class="btn"><button class="red dark">Выйти</button></a>
         </main>
@@ -35,8 +35,6 @@
                     window.location.href = '/';
                 } else {
                     if (data.admin) {
-                        document.getElementById('usersBtn').classList.remove('hidden');
-                        document.getElementById('archiveBtn').classList.remove('hidden');
                         document.getElementById('editBtn').classList.remove('hidden');
                         document.getElementById('editDishesBtn').classList.remove('hidden');
                     }
