@@ -31,6 +31,13 @@ orders_collection = db.orders  # Добавляем новую коллекци�
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'fj30fjn2-0n23f398fno3i2ufn2oipfjnh8&*#H78rh'  # Добавьте эту строку
 
+def check_db_connection():
+    try:
+        client.admin.command('ping', maxTimeMS=1000)
+        print("Подключение к базе данных успешно")
+    except Exception as e:
+        raise Exception(f"Ошибка подключения к базе данных: {e}")
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     error_code = 500
@@ -195,7 +202,7 @@ def current_day_dishes():
     
     # Получаем номер дня недели для завтра (1-5)
     weekday = tomorrow.isoweekday()
-    if weekday > 5:  # Если выходной, показываем следующий понедельник
+    if (weekday > 5):  # Если выходной, показываем следующий понедельник
         days_until_monday = 8 - weekday  # 8 вместо 7, так как нам нужен следующий понедельник
         tomorrow = datetime.now() + timedelta(days=days_until_monday)
         weekday = 1
@@ -413,4 +420,5 @@ def update_order_status():
     return jsonify({'success': False}), 404
 
 if __name__ == '__main__':
+    check_db_connection()
     app.run(debug=False, port=80, host="0.0.0.0")

@@ -9,31 +9,35 @@
 </head>
 <body class="center-page">
     <div id="settings" class="screen active" data-view>
-        <h2>Вход</h2>
-        <form id="loginForm" method="POST" action="/login">
+        <h2 id="formTitle">Вход</h2>
+        <form id="authForm" method="POST" action="/login">
             <input type="text" name="login" placeholder="Логин" required>
             <input type="password" name="password" placeholder="Пароль" required>
             <button type="submit" class="btn">Войти</button>
         </form>
         <div id="error" class="error hidden"></div>
-        <h2>Регистрация</h2>
-        <form id="registerForm" method="POST" action="/register">
-            <input type="text" name="login" placeholder="Логин" required>
-            <input type="password" name="password" placeholder="Пароль" required>
-            <button type="submit" class="btn">Зарегистрироваться</button>
-        </form>
-        <div id="registerError" class="error hidden"></div>
+        <p id="toggleText">Нет аккаунта? <a onclick="toggleForm()" href="#" id="toggleLink">Зарегистрироваться</a></p>
     </div>
     <script>
-        const loginForm = document.getElementById('loginForm');
-        const loginErrorDiv = document.getElementById('error');
-        const registerForm = document.getElementById('registerForm');
-        const registerErrorDiv = document.getElementById('registerError');
+        const authForm = document.getElementById('authForm');
+        const errorDiv = document.getElementById('error');
+        const formTitle = document.getElementById('formTitle');
+        const toggleText = document.getElementById('toggleText');
+        const toggleLink = document.getElementById('toggleLink');
+        let isLogin = true;
 
-        loginForm.addEventListener('submit', async (event) => {
+        function toggleForm() {
+            isLogin = !isLogin;
+            formTitle.textContent = isLogin ? 'Вход' : 'Регистрация';
+            authForm.action = isLogin ? '/login' : '/register';
+            authForm.querySelector('button').textContent = isLogin ? 'Войти' : 'Зарегистрироваться';
+            toggleText.innerHTML = isLogin ? 'Нет аккаунта? <a href="#" id="toggleLink">Зарегистрироваться</a>' : 'Уже есть аккаунт? <a href="#" id="toggleLink">Войти</a>';
+        }
+
+        authForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const formData = new FormData(loginForm);
-            const response = await fetch('/login', {
+            const formData = new FormData(authForm);
+            const response = await fetch(authForm.action, {
                 method: 'POST',
                 body: formData
             });
@@ -41,24 +45,8 @@
             if (result === 'OK') {
                 window.location.href = '/home';
             } else {
-                loginErrorDiv.textContent = result;
-                loginErrorDiv.classList.remove('hidden');
-            }
-        });
-
-        registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const formData = new FormData(registerForm);
-            const response = await fetch('/register', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.text();
-            if (result === 'OK') {
-                window.location.href = '/home';
-            } else {
-                registerErrorDiv.textContent = result;
-                registerErrorDiv.classList.remove('hidden');
+                errorDiv.textContent = result;
+                errorDiv.classList.remove('hidden');
             }
         });
 

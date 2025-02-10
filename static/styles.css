@@ -20,7 +20,7 @@ body.error {
     background-color: black;
 }
 
-h3.error {
+h3.error, .coral {
     color: #FF7F7F;
 }
 
@@ -406,4 +406,20 @@ header > a > i, header > .grow > a > i {
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
+}
+
+#authForm {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    gap: 10px;
+}
+
+#authForm > input {
+    height: 30px;
+    font-size: 1rem;
+}
+
+#authForm > input::placeholder {
+    color: #ffffffb6;
 }
