@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Меню на сегодня</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web"></script>
 </head>
 <body>
     <div class="container">
@@ -137,11 +137,15 @@
                     
                     const card = document.createElement('div');
                     card.className = 'card customer';
+                    const dishName = dish.name.replace(/"/g, '‟');
+                    const dishId = dish._id.replace(/"/g, '‟');
+                    const dishPrice = dish.price;
+                    const dishType = dish.type.replace(/"/g, '‟');
                     card.innerHTML = `
                         <div>
-                            <h3>${dish.name}</h3>
+                            <h3>${dishName}</h3>
                         </div>
-                        <button onclick="addToOrder('${dish._id}', '${dish.name}', ${dish.price}, this, '${dish.type}')">${dish.price} ₽</button>
+                        <button onclick="addToOrder('${dishId}', '${dishName}', ${dishPrice}, this, '${dishType}')">${dishPrice} ₽</button>
                     `;
                     container.appendChild(card);
                 });

@@ -28,6 +28,12 @@ dishes_collection = db.dishes
 days_collection = db.days
 orders_collection = db.orders  # Добавляем новую коллекцию
 
+def initialize_days_collection():
+    if days_collection.count_documents({}) == 0:
+        days = [{'dishes': [], 'day': i, 'week': (i // 5) + 1, 'weekday': i % 5 + 1} for i in range(1, 11)]
+        days_collection.insert_many(days)
+        print("10 дней добавлены в коллекцию days")
+
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'fj30fjn2-0n23f398fno3i2ufn2oipfjnh8&*#H78rh'  # Добавьте эту строку
 
@@ -421,4 +427,5 @@ def update_order_status():
 
 if __name__ == '__main__':
     check_db_connection()
+    initialize_days_collection()
     app.run(debug=False, port=80, host="0.0.0.0")
