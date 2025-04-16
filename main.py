@@ -108,6 +108,9 @@ def login():
     login = data.get('login')
     password = data.get('password')
     user = users_collection.find_one({'login': login})
+    print(f"Password entered by user: {password}")
+    print(f"Hashed password entered by user: {generate_password_hash(password)}")
+    print(f"Hashed password in database: {user['password']}")
     if user and check_password_hash(user['password'], password):
         session['user_id'] = str(user['_id'])
         return 'OK'
