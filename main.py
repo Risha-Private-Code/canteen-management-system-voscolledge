@@ -19,6 +19,7 @@ from functools import wraps
 from werkzeug.exceptions import HTTPException
 from license_check import check_license
 import logging
+import random
 
 check_license()
 
@@ -41,6 +42,12 @@ app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'fj30fjn2-0n23f398fno3i2ufn2oipfjnh8&*#H78rh'  # Добавьте эту строку
 
 DEMO_MODE = True  # Set to False to require authentication
+
+DEMO_ADJECTIVES = ["Голодный", "Весёлый", "Умный", "Быстрый", "Добрый", "Скромный", "Занятой"]
+DEMO_NOUNS = ["Студент", "Преподаватель", "Повар", "Гость", "Посетитель", "Философ", "Математик"]
+
+def generate_random_nickname():
+    return f"{random.choice(DEMO_ADJECTIVES)} {random.choice(DEMO_NOUNS)} #{random.randint(100, 999)}"
 
 def check_db_connection():
     try:
@@ -75,8 +82,6 @@ def admin_required(f):
             user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
             if user and user.get('admin', False):
                 return f(*args, **kwargs)
-        if DEMO_MODE and session.get('demo_admin'):
-            return f(*args, **kwargs)
         return redirect(url_for('home'))
     return decorated_function
 
@@ -147,7 +152,7 @@ def check_auth():
     if DEMO_MODE:
         return {
             'authenticated': True,
-            'username': 'Demo Admin' if is_admin else 'Demo User',
+            'username': '' if is_admin else '',
             'admin': is_admin,
             'demo_mode': True
         }
@@ -270,36 +275,45 @@ def create_order():
         return jsonify({'error': 'Unauthorized'}), 401
         
     user = None
-    if not DEMO_MODE:
+    user_nickname = None
+    
+    if DEMO_MODE:
+        user_nickname = generate_random_nickname()
+    else:
         user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
         if not user:
             return jsonify({'error': 'User not found'}), 404
+        user_nickname = user['login']
 
     data = request.get_json()
     dishes = data.get('dishes', [])
     
     from datetime import datetime, timedelta
-    # Устанавливаем дату на завтра
     tomorrow = (datetime.now() + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Если завтра выходной, устанавливаем дату на следующий понедельник
     if tomorrow.isoweekday() > 5:
         days_until_monday = 8 - tomorrow.isoweekday()
         tomorrow = tomorrow + timedelta(days=days_until_monday)
-    
-    # In demo mode, don't check for existing orders
-    if not DEMO_MODE:
+
+    # В демо режиме проверяем по IP-адресу чтобы избежать множественных заказов
+    if DEMO_MODE:
+        existing_order = orders_collection.find_one({
+            'ip_address': request.remote_addr,
+            'date': tomorrow,
+            'status': {'$ne': "completed"}
+        })
+    else:
         existing_order = orders_collection.find_one({
             'user': user['login'],
             'date': tomorrow,
             'status': {'$ne': "completed"}
         })
 
-        if existing_order:
-            return jsonify({
-                'success': False,
-                'error': 'У вас уже есть активный заказ на завтра'
-            }), 400
+    if existing_order:
+        return jsonify({
+            'success': False,
+            'error': 'У вас уже есть активный заказ на завтра'
+        }), 400
 
     last_order = orders_collection.find_one(sort=[('order_id', -1)])
     new_order_id = 1 if not last_order else last_order['order_id'] + 1
@@ -308,8 +322,9 @@ def create_order():
         'order_id': new_order_id,
         'dishes': [ObjectId(dish_id) for dish_id in dishes],
         'date': tomorrow,
-        'user': 'Demo User' if DEMO_MODE else user['login'],
-        'status': 'ordered'  # Initialize with 'ordered' status
+        'user': user_nickname,
+        'status': 'ordered',
+        'ip_address': request.remote_addr if DEMO_MODE else None
     }
     
     result = orders_collection.insert_one(order)
@@ -383,26 +398,31 @@ def mark_order_complete():
 
 @app.route('/check_active_order')
 def check_active_order():
-    if 'user_id' not in session:
+    if not DEMO_MODE and 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     from datetime import datetime, timedelta
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     tomorrow = today + timedelta(days=1)
     
-    # Если завтра выходной, корректируем дату
     if tomorrow.isoweekday() > 5:
         days_until_monday = 8 - tomorrow.isoweekday()
         tomorrow = tomorrow + timedelta(days=days_until_monday)
     
-    user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
-    
-    # Ищем активные заказы на сегодня и завтра
-    active_orders = list(orders_collection.find({
-        'user': user['login'],
-        'status': {'$ne': 'completed'},
-        'date': {'$in': [today, tomorrow]}
-    }))
+    # В демо режиме ищем заказы по IP-адресу
+    if DEMO_MODE:
+        active_orders = list(orders_collection.find({
+            'ip_address': request.remote_addr,
+            'status': {'$ne': 'completed'},
+            'date': {'$in': [today, tomorrow]}
+        }))
+    else:
+        user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+        active_orders = list(orders_collection.find({
+            'user': user['login'],
+            'status': {'$ne': 'completed'},
+            'date': {'$in': [today, tomorrow]}
+        }))
     
     if not active_orders:
         return jsonify({'has_active_order': False})
