@@ -101,8 +101,9 @@ def settings():
 
 @app.route('/login', methods=['POST'])
 def login():
-    login = request.form['login']
-    password = request.form['password']
+    data = request.get_json()
+    login = data.get('login')
+    password = data.get('password')
     user = users_collection.find_one({'login': login})
     if user and check_password_hash(user['password'], password):
         session['user_id'] = str(user['_id'])
