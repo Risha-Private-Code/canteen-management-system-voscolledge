@@ -35,7 +35,7 @@
         fetch('/check_auth')
             .then(response => response.json())
             .then(data => {
-                if (!data.authenticated) {
+                if (!data.authenticated && !data.demo) {
                     window.location.href = '/';
                 } else {
                     // Проверяем наличие активного заказа

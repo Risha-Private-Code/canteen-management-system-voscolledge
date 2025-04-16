@@ -37,6 +37,8 @@ def initialize_days_collection():
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'fj30fjn2-0n23f398fno3i2ufn2oipfjnh8&*#H78rh'  # Добавьте эту строку
 
+DEMO_MODE = True  # Set to False to require authentication
+
 def check_db_connection():
     try:
         client.admin.command('ping', maxTimeMS=1000)
@@ -66,6 +68,8 @@ def handle_exception(e):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if DEMO_MODE:
+            return f(*args, **kwargs)
         if 'user_id' not in session:
             return redirect(url_for('home'))
         user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
@@ -118,6 +122,12 @@ def register():
 
 @app.route('/check_auth')
 def check_auth():
+    if DEMO_MODE:
+        return {
+            'authenticated': True,
+            'username': 'Demo User',
+            'admin': False
+        }
     if 'user_id' in session:
         user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
         return {
@@ -238,12 +248,14 @@ def current_day_dishes():
 
 @app.route('/create_order', methods=['POST'])
 def create_order():
-    if 'user_id' not in session:
+    if not DEMO_MODE and 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
         
-    user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
+    user = None
+    if not DEMO_MODE:
+        user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
 
     data = request.get_json()
     dishes = data.get('dishes', [])
@@ -257,18 +269,19 @@ def create_order():
         days_until_monday = 8 - tomorrow.isoweekday()
         tomorrow = tomorrow + timedelta(days=days_until_monday)
     
-    # Проверяем наличие активного заказа на завтра
-    existing_order = orders_collection.find_one({
-        'user': user['login'],
-        'date': tomorrow,
-        'status': {'$ne': "completed"}
-    })
+    # In demo mode, don't check for existing orders
+    if not DEMO_MODE:
+        existing_order = orders_collection.find_one({
+            'user': user['login'],
+            'date': tomorrow,
+            'status': {'$ne': "completed"}
+        })
 
-    if existing_order:
-        return jsonify({
-            'success': False,
-            'error': 'У вас уже есть активный заказ на завтра'
-        }), 400
+        if existing_order:
+            return jsonify({
+                'success': False,
+                'error': 'У вас уже есть активный заказ на завтра'
+            }), 400
 
     last_order = orders_collection.find_one(sort=[('order_id', -1)])
     new_order_id = 1 if not last_order else last_order['order_id'] + 1
@@ -277,7 +290,7 @@ def create_order():
         'order_id': new_order_id,
         'dishes': [ObjectId(dish_id) for dish_id in dishes],
         'date': tomorrow,
-        'user': user['login'],
+        'user': 'Demo User' if DEMO_MODE else user['login'],
         'status': 'ordered'  # Initialize with 'ordered' status
     }
     
