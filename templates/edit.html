@@ -59,7 +59,7 @@
                         const dishesList = document.createElement('ul');
                         day.dishes.forEach(dishId => {
                             const listItem = document.createElement('li');
-                            listItem.textContent = dishesMap[dishId] || 'Unknown dish';
+                            listItem.textContent = dishesMap[dishId] || 'Неизвестное блюдо!';
                             dishesList.appendChild(listItem);
                         });
                         card.appendChild(dishesList);
