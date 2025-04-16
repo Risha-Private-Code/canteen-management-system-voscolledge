@@ -102,13 +102,12 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        credentials: 'include', // Add this to include cookies
                         body: JSON.stringify(loginData)
                     });
                     
-                    const result = await response.json(); // Change to json() instead of text()
-                    if (result.status === 'OK') { // Check for result.status instead of plain text
-                        location.href = '/settings'; // Redirect to refresh the session
+                    const result = await response.text();
+                    if (result === 'OK') {
+                        window.location.reload();
                     } else {
                         alert('Неверный логин или пароль');
                     }

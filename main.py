@@ -136,13 +136,6 @@ def check_auth():
         user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
         is_admin = user and user.get('admin', False)
     
-    if DEMO_MODE:
-        return {
-            'authenticated': True,
-            'username': 'Demo Admin' if is_admin else 'Demo User',
-            'admin': is_admin,
-            'demo_mode': True
-        }
     if 'user_id' in session:
         user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
         return {
@@ -150,6 +143,13 @@ def check_auth():
             'username': user['login'],
             'admin': user.get('admin', False),
             'demo_mode': False
+        }
+    if DEMO_MODE:
+        return {
+            'authenticated': True,
+            'username': 'Demo Admin' if is_admin else 'Demo User',
+            'admin': is_admin,
+            'demo_mode': True
         }
     return {
         'authenticated': False,
