@@ -123,20 +123,29 @@ def register():
 @app.route('/check_auth')
 def check_auth():
     if DEMO_MODE:
+        is_admin = False
+        if 'user_id' in session:
+            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+            is_admin = user and user.get('admin', False)
         return {
             'authenticated': True,
             'username': 'Demo User',
-            'admin': False
+            'admin': is_admin,
+            'demo_mode': True
         }
     if 'user_id' in session:
         user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
         return {
             'authenticated': True,
             'username': user['login'],
-            'admin': user['admin']
+            'admin': user['admin'],
+            'demo_mode': False
         }
     else:
-        return {'authenticated': False}
+        return {
+            'authenticated': False,
+            'demo_mode': False
+        }
 
 @app.route('/logout')
 def logout():
