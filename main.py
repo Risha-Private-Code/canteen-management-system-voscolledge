@@ -451,4 +451,4 @@ def update_order_status():
 if __name__ == '__main__':
     check_db_connection()
     initialize_days_collection()
-    app.run(debug=False, port=80, host="0.0.0.0")
+    app.run(debug=True, port=80, host="0.0.0.0")
