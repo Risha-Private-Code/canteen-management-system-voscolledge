@@ -10,7 +10,7 @@
 <body class="center-page">
     <div id="settings" class="screen active" data-view>
         <h2 id="formTitle">Вход</h2>
-        <form id="authForm" method="POST" action="/login">
+        <form id="authForm">
             <input type="text" name="login" placeholder="Логин" required>
             <input type="password" name="password" placeholder="Пароль" required>
             <button type="submit" class="btn">Войти</button>
@@ -36,10 +36,16 @@
 
         authForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const formData = new FormData(authForm);
+            const formData = {
+                login: authForm.login.value,
+                password: authForm.password.value
+            };
             const response = await fetch(authForm.action, {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
             });
             const result = await response.text();
             if (result === 'OK') {
