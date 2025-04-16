@@ -101,8 +101,6 @@
 
         // Объект для хранения заказанных блюд
         const orderedDishes = new Set();
-        // Переменная для хранения ID выбранного хлеба
-        let selectedBreadId = null;
         // Добавляем объект для хранения цен блюд
         const dishPrices = new Map();
 
@@ -156,22 +154,7 @@
                 // Убираем из заказа
                 orderedDishes.delete(id);
                 button.classList.remove('sand');
-                if (type === 'Хлеб' && selectedBreadId === id) {
-                    selectedBreadId = null;
-                }
             } else {
-                // Проверяем, если это хлеб
-                if (type === 'Хлеб') {
-                    // Если уже выбран хлеб, отменяем предыдущий выбор
-                    if (selectedBreadId) {
-                        const previousButton = document.querySelector(`button[onclick*="${selectedBreadId}"]`);
-                        if (previousButton) {
-                            previousButton.classList.remove('sand');
-                            orderedDishes.delete(selectedBreadId);
-                        }
-                    }
-                    selectedBreadId = id;
-                }
                 // Добавляем в заказ
                 orderedDishes.add(id);
                 button.classList.add('sand');
