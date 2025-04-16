@@ -18,8 +18,11 @@ from bson import ObjectId
 from functools import wraps
 from werkzeug.exceptions import HTTPException
 from license_check import check_license
+import logging
 
 check_license()
+
+logging.basicConfig(filename='error.log', level=logging.ERROR)
 
 client = MongoClient('mongodb://localhost:27017/')
 db = client.stolovaya
