@@ -71,14 +71,13 @@ def handle_exception(e):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if DEMO_MODE:
+        if 'user_id' in session:
+            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+            if user and user.get('admin', False):
+                return f(*args, **kwargs)
+        if DEMO_MODE and session.get('demo_admin'):
             return f(*args, **kwargs)
-        if 'user_id' not in session:
-            return redirect(url_for('home'))
-        user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
-        if not user or not user.get('admin', False):
-            return redirect(url_for('home'))
-        return f(*args, **kwargs)
+        return redirect(url_for('home'))
     return decorated_function
 
 @app.route('/')
@@ -113,16 +112,12 @@ def login():
         print(f"User not found: {login}")
         return 'Invalid login or password'
     
-    print("Login attempt:")
-    print(f"Input password: {password}")
-    print(f"Stored hash: {user['password']}")
-    print(f"Hash check result: {check_password_hash(user['password'], password)}")
-    
     if check_password_hash(user['password'], password):
         session['user_id'] = str(user['_id'])
+        if user.get('admin'):
+            session['demo_admin'] = True
         return 'OK'
-    else:
-        return 'Invalid login or password'
+    return 'Invalid login or password'
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -136,14 +131,15 @@ def register():
 
 @app.route('/check_auth')
 def check_auth():
+    is_admin = False
+    if 'user_id' in session:
+        user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+        is_admin = user and user.get('admin', False)
+    
     if DEMO_MODE:
-        is_admin = False
-        if 'user_id' in session:
-            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
-            is_admin = user and user.get('admin', False)
         return {
             'authenticated': True,
-            'username': 'Demo User',
+            'username': 'Demo Admin' if is_admin else 'Demo User',
             'admin': is_admin,
             'demo_mode': True
         }
@@ -152,14 +148,13 @@ def check_auth():
         return {
             'authenticated': True,
             'username': user['login'],
-            'admin': user['admin'],
+            'admin': user.get('admin', False),
             'demo_mode': False
         }
-    else:
-        return {
-            'authenticated': False,
-            'demo_mode': False
-        }
+    return {
+        'authenticated': False,
+        'demo_mode': False
+    }
 
 @app.route('/logout')
 def logout():
