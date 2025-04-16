@@ -40,7 +40,7 @@ def initialize_days_collection():
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'fj30fjn2-0n23f398fno3i2ufn2oipfjnh8&*#H78rh'  # Добавьте эту строку
 
-DEMO_MODE = True  # Set to False to require authentication
+DEMO_MODE = False  # Set to False to require authentication
 
 def check_db_connection():
     try:
